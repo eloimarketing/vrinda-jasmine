@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
 	},
 	// Disable telemetry
 	telemetry: false,
+	// Configure experimental features
+	experimental: {
+		// Suppress Edge Runtime warnings for bcryptjs
+		serverComponentsExternalPackages: ['bcryptjs'],
+	},
 }
 
 export default nextConfig

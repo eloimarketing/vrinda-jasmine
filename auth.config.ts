@@ -1,4 +1,5 @@
 import Credentials from 'next-auth/providers/credentials'
+import { compare } from 'bcryptjs'
 import type { NextAuthConfig } from 'next-auth'
 import prisma from '@/lib/prisma/prisma'
 
@@ -16,7 +17,7 @@ export default {
 					throw new Error('Email and password are required')
 				}
 
-				console.log(credentials.email, credentials.password)
+				console.log('Login attempt for:', credentials.email)
 
 				// logic to verify if the user exists
 				const user = await prisma.user.findUnique({
@@ -26,17 +27,21 @@ export default {
 				})
 
 				if (!user) {
+					console.log('User not found:', credentials.email)
 					throw new Error('No user found with this email')
 				}
 
-				// For Edge Runtime compatibility, we'll use a simple comparison
-				// In production, you should use a proper password hashing library
-				// that's Edge Runtime compatible like crypto.subtle
-				const isPasswordValid = credentials.password === user.password
+				console.log('User found:', user.email, 'Role:', user.role)
+
+				// Compare the provided password with the hashed password
+				const isPasswordValid = await compare(credentials.password as string, user.password)
 
 				if (!isPasswordValid) {
+					console.log('Invalid password for user:', credentials.email)
 					throw new Error('Invalid password')
 				}
+
+				console.log('Login successful for:', credentials.email)
 
 				return {
 					id: user.id,
