@@ -1,0 +1,753 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  SUPPLIER
+  CUSTOMER
+}
+
+enum ProductCategory {
+  REFRIGERATION
+  COOKING_APPLIANCES
+  APPLIANCES
+  KITCHENWARE_EQUIPMENT
+  CONSUMABLES
+  KITCHEN_FURNITURE
+  CLEANING
+  GRADED_EQUIPMENT
+  BARWARE
+  TABLEWARE
+  KITCHEN_ACCESSORIES
+  CATERING_SUPPLIES
+}
+
+model User {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  phoneNumber String
+  role      UserRole @default(CUSTOMER)
+  avatarUrl String?
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations to all product tables (existing)
+  glassDoorRefrigerations GlassDoorRefrigeration[]
+  iceCreamFreezers       IceCreamFreezers[]
+  drinksFridgesBottleCoolers DrinksFridgesBottleCoolers[]
+  serveOverCounters      ServeOverCounters[]
+  multideckDisplays      MultideckDisplays[]
+  uprightUndercounterFridges UprightUndercounterFridges[]
+  freezersChestAndUpright FreezersChestAndUpright[]
+  rangeCookersInductionCookersHobs RangeCookersInductionCookersHobs[]
+  ovens                  Ovens[]
+  gnPansAccessories      GnPansAccessories[]
+  cookware               Cookware[]
+  beverageMachines       BeverageMachines[]
+  blendersMixers         BlendersMixers[]
+  slushMachines          SlushMachines[]
+  allAppliances          AllAppliances[]
+  generalEquipment       GeneralEquipment[]
+  generalConsumables     GeneralConsumables[]
+  allFurniture           AllFurniture[]
+  dishwashersGlasswashers DishwashersGlasswashers[]
+  hygieneAccessories     HygieneAccessories[]
+  laundryMachines        LaundryMachines[]
+  allGradedProducts      AllGradedProducts[]
+  
+  // New unified products relation
+  products               Product[]
+  cart                   Cart[]
+
+  @@map("users")
+}
+
+// New Unified Product Model
+model Product {
+  id              String          @id @default(cuid())
+  name            String
+  brand           String?
+  category        ProductCategory
+  subcategory     String?
+  price           Float
+  description     String
+  productImage    String
+  ownerId         String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  isApproved      Boolean         @default(false)
+  approvedAt      DateTime?
+  approvedBy      String?
+
+  // Relations
+  owner           User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  attributes      ProductAttribute[]
+
+  @@map("products")
+}
+
+// Dynamic Product Attributes
+model ProductAttribute {
+  id              String   @id @default(cuid())
+  productId       String
+  attributeName   String
+  attributeValue  String
+  attributeType   String   // 'string', 'number', 'boolean'
+
+  // Relations
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, attributeName])
+  @@map("product_attributes")
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String @unique
+
+  subcategories Subcategory[]
+
+  @@map("Category")
+}
+
+model Subcategory {
+  id         String @id @default(cuid())
+  name       String
+  categoryId String
+
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@map("Subcategory")
+}
+
+// Existing models (keeping for backward compatibility)
+// Refrigeration Category Tables
+model GlassDoorRefrigeration {
+  id               String   @id @default(cuid())
+  productName      String
+  brand            String
+  model            String
+  temperatureRange String
+  capacityLitres   String
+  glassType        String
+  lighting         String
+  shelves          String
+  dimensions       String
+  powerSupply      String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("GlassDoorRefrigeration")
+}
+
+model IceCreamFreezers {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity        String
+  temperatureRange String
+  lidType         String
+  defrostType     String
+  interiorLighting String
+  power           String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("IceCreamFreezers")
+}
+
+model DrinksFridgesBottleCoolers {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity        String
+  temperatureRange String
+  doorType        String
+  shelving        String
+  lighting        String
+  power           String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("DrinksFridgesBottleCoolers")
+}
+
+model ServeOverCounters {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity        String
+  temperatureRange String
+  counterType     String
+  displayArea     String
+  lighting        String
+  power           String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("ServeOverCounters")
+}
+
+model MultideckDisplays {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity        String
+  temperatureRange String
+  deckCount       String
+  displayType     String
+  lighting        String
+  power           String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("MultideckDisplays")
+}
+
+model UprightUndercounterFridges {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity        String
+  temperatureRange String
+  fridgeType      String
+  shelving        String
+  lighting        String
+  power           String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("UprightUndercounterFridges")
+}
+
+model FreezersChestAndUpright {
+  id                  String   @id @default(cuid())
+  productName         String
+  brand               String
+  freezerType         String
+  capacity            String
+  temperatureControl  String
+  numberOfCompartments String
+  power               String
+  dimensions          String
+  warranty            String
+  price               Float
+  productImage        String
+  description         String
+  ownerId             String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("FreezersChestAndUpright")
+}
+
+// Cooking Appliances Category Tables
+model RangeCookersInductionCookersHobs {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  burnerCount     String
+  powerOutput     String
+  fuelType        String
+  controlType     String
+  safetyFeatures  String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("RangeCookersInductionCookersHobs")
+}
+
+model Ovens {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity        String
+  ovenType        String
+  temperatureRange String
+  cookingModes    String
+  power           String
+  dimensions      String
+  warranty        String
+  price           Float
+  productImage    String
+  description     String
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("Ovens")
+}
+
+model GnPansAccessories {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  panSize          String
+  material         String
+  depth            String
+  handles          String
+  lids             String
+  capacity         String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("GnPansAccessories")
+}
+
+model Cookware {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  material         String
+  size             String
+  type             String
+  handles          String
+  lids             String
+  inductionCompatible String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("Cookware")
+}
+
+model BeverageMachines {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  machineType      String
+  capacity         String
+  power            String
+  temperatureControl String
+  features         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("BeverageMachines")
+}
+
+model BlendersMixers {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  power            String
+  capacity         String
+  speedSettings    String
+  attachments      String
+  material         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("BlendersMixers")
+}
+
+model SlushMachines {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity         String
+  temperatureRange String
+  tankCount        String
+  power            String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("SlushMachines")
+}
+
+// Appliances Category Table
+model AllAppliances {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  applianceType   String
+  power            String
+  capacity         String
+  features         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("AllAppliances")
+}
+
+// Kitchenware & Equipment Category Table
+model GeneralEquipment {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  equipmentType   String
+  material         String
+  size             String
+  power            String
+  features         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("GeneralEquipment")
+}
+
+// Consumables Category Table
+model GeneralConsumables {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  consumableType   String
+  quantity         String
+  unit             String
+  expiryDate       String
+  storage          String
+  usage            String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("GeneralConsumables")
+}
+
+// Kitchen Furniture Category Table
+model AllFurniture {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  furnitureType    String
+  material         String
+  dimensions       String
+  weight           String
+  assembly         String
+  finish           String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("AllFurniture")
+}
+
+// Cleaning Category Tables
+model DishwashersGlasswashers {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity         String
+  cycleTime        String
+  power            String
+  waterConsumption String
+  features         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("DishwashersGlasswashers")
+}
+
+model HygieneAccessories {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  accessoryType    String
+  material         String
+  size             String
+  features         String
+  installation     String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("HygieneAccessories")
+}
+
+model LaundryMachines {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  capacity         String
+  machineType      String
+  power            String
+  waterConsumption String
+  features         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("LaundryMachines")
+}
+
+// Graded Equipment Category Table
+model AllGradedProducts {
+  id              String   @id @default(cuid())
+  productName     String
+  brand           String
+  grade            String
+  condition        String
+  age              String
+  originalPrice    String
+  features         String
+  dimensions       String
+  warranty         String
+  price            Float
+  productImage     String
+  description      String
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  isApproved Boolean @default(false)
+  approvedAt DateTime?
+  approvedBy String?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("AllGradedProducts")
+}
+
+model Cart {
+  id     Int    @id @default(autoincrement())
+  userId String
+  itemId String
+  quantity Int @default(1)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@map("carts")
+}
